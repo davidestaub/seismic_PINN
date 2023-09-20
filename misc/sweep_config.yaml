@@ -1,0 +1,21 @@
+method: random
+name: sweep
+metric:
+  goal: minimize
+  name: final_loss
+parameters:
+  max_iter:
+    values: [1,400]
+  max_eval:
+    values: [1,200]
+  history_size:
+    values: [1,3000]
+  tolerance_grad:
+    values: [1e-5,1e-11]
+  epochs:
+    values: [100]
+  learning_rate:
+    max: 1.5
+    min: 0.1
+program: 'solid_only_analytical_ansatz.py'
+command: ['python','${program}','--epochs=${epochs}','--lr=${learning_rate}']
