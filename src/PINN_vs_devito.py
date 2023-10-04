@@ -38,28 +38,28 @@ config = configparser.ConfigParser()
 #Number of points along x and y axis, total number of points will be numpoints_sqrt**2
 numpoints_sqrt = 256
 dt=1.1e-3
-mu_quake_x = -0.25
-mu_quake_y = 0.25
+mu_quake_x = 0.476
+mu_quake_y = 0.1628
 
 
 mu_quake = [mu_quake_x, mu_quake_y]
 mu_quake = torch.tensor(mu_quake)
 
-
+#pth = "../pre_trained_models/FLIPY_NEW_PINN_conditioned_300000_100_1.0_200_200_800_6_64_tanh_0.07.pth"
 
 
 if len(sys.argv) < 2:
     raise Exception("Please provide an input folder containing a model path and a config file")
 input_folder = sys.argv[1]
 
-config.read(input_folder+"/config.ini")
+config.read("../pre_trained_models/"+input_folder+"/config.ini")
 t1 = float(config['initial_condition']['t1'])
 
 # Parameters
 rho_solid = float(config['parameters']['rho_solid'])
 
 
-model_path = input_folder+"/model.pth"
+model_path = "../pre_trained_models/"+input_folder+"/model.pth"
 str_path = model_path.replace("../pre_trained_models/","")
 model_type = config["parameters"]["model_type"]
 
@@ -226,6 +226,9 @@ elif model_type == "Relative_Distance_FullDomain_Conditioned_Pinns":
 elif model_type == "Global_NSources_Conditioned_Lame_Pinns":
     pinn = PINNs.Global_NSources_Conditioned_Lame_Pinns(int(config['Network']['n_points']), wandb_on=False,
                                                         config=config)
+elif model_type == "Global_FullDomain_Conditioned_Pinns":
+    pinn = PINNs.Global_FullDomain_Conditioned_Pinns(int(config['Network']['n_points']), wandb_on=False,
+                                                        config=config)
 else:
     raise Exception("Model type {} not supported".format(model_type))
 
@@ -254,6 +257,7 @@ print(f"Directory '{tag}' created with subdirectories 'x', 'y', and 'u'.")
 
 n_neurons = int(config['Network']['n_neurons'])
 n_hidden_layers = int(config['Network']['n_hidden_layers'])
+print(n_neurons,n_hidden_layers)
 if config['Network']['activation'] == 'tanh':
     activation = nn.Tanh()
 else:
@@ -334,7 +338,9 @@ s_u = 5 * np.mean(np.abs(res_u))
 f, axarr = plt.subplots(3, 3, figsize=(15, 20))
 plt.subplots_adjust(hspace=-0.1, wspace=0.1)
 
-
+RMSE = 0
+RRMSE = 0
+index = 1
 for h in range(0, len(res_list_uy)):
     diffx = ((res_uy[h, :, :]) - (res_list_devito_x[h]))
     diffx[0:9, :] = 0
@@ -344,6 +350,10 @@ for h in range(0, len(res_list_uy)):
     im1x = axarr[0][0].imshow(res_uy[h, :, :], 'bwr', vmin=-2*s_uy, vmax=2*s_uy)
     im2x = axarr[0][1].imshow(res_list_devito_x[h], 'bwr', vmin=-2*s_uy, vmax=2*s_uy)
     im3x = axarr[0][2].imshow(diffx, 'bwr', vmin=-2*s_uy, vmax=2*s_uy)
+    RMSE = RMSE + np.sqrt(np.mean(diffx ** 2))
+    RRMSE = RRMSE + np.sqrt(np.mean(diffx ** 2))/np.sqrt(np.mean(res_list_devito_x[h] ** 2))
+    print("RMSE:", RMSE/index, "RRMSE:", RRMSE/index)
+    index = index +1
 
     diffy = (res_ux[h, :, :]) - (res_list_devito_y[h])
     diffy[0:9, :] = 0
@@ -374,4 +384,6 @@ for h in range(0, len(res_list_uy)):
     f.show()
     f.savefig("../images/{}/x/time={}.png".format(tag, h))
     print("entryy:", h)
-
+RMSE = RMSE/len(res_list_uy)
+RRMSE = RRMSE/len(res_list_uy)
+print("RMSE:",RMSE,"RRMSE:",RRMSE)

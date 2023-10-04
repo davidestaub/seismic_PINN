@@ -81,23 +81,23 @@ def compute_lambda_mu_layers(X, Y, num_layers, smoothing_fraction=0.2):
 
 
 if __name__ == "__main__":
-    x_vals = torch.linspace(-1, 1, 1000)
-    y_vals = torch.linspace(-1, 1, 1000)
-    X, Y = torch.meshgrid(x_vals, y_vals)
-    lambda_l,mu_l = compute_lambda_mu_layers(X,Y,5)
+    #x_vals = torch.linspace(-1, 1, 1000)
+    #y_vals = torch.linspace(-1, 1, 1000)
+    #X, Y = torch.meshgrid(x_vals, y_vals)
+    #lambda_l,mu_l = compute_lambda_mu_layers(X,Y,5)
 
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    img1 = ax[0].imshow(mu_l, extent=[-1, 1, -1, 1], cmap='viridis')
-    ax[0].set_title('Mu Layer Model')
-    ax[0].set_xlabel('x')
-    ax[0].set_ylabel('y')
-    fig.colorbar(img1, ax=ax[0])
+    #f#ig, ax = plt.subplots(1, 2, figsize=(12, 6))
+    #img1 = ax[0].imshow(mu_l, extent=[-1, 1, -1, 1], cmap='viridis')
+    #ax[0].set_title('Mu Layer Model')
+    #ax[0].set_xlabel('x')
+    #ax[0].set_ylabel('y')
+    #fig.colorbar(img1, ax=ax[0])
 
-    img2 = ax[1].imshow(lambda_l, extent=[-1, 1, -1, 1], cmap='viridis')
-    ax[1].set_title('Lambda Layere Model')
-    ax[1].set_xlabel('x')
-    ax[1].set_ylabel('y')
-    fig.colorbar(img2, ax=ax[1])
+    #img2 = ax[1].imshow(lambda_l, extent=[-1, 1, -1, 1], cmap='viridis')
+    #ax[1].set_title('Lambda Layere Model')
+    #ax[1].set_xlabel('x')
+    #ax[1].set_ylabel('y')
+    #fig.colorbar(img2, ax=ax[1])
 
     # Generate mixtures for mu and lambda
     mu_mixture = generate_mixture()

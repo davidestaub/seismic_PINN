@@ -146,7 +146,7 @@ for source in source_list:
             # Evaluate the model with the given input tensor
             U_perturbation = self.approximate_solution(input_tensor)
             t = input_tensor[:, 0]
-            u0x, u0y = initial_conditions.initial_condition_explosion_conditioned(input_tensor)
+            u0x, u0y = initial_conditions.initial_condition_explosion_conditioned(input_tensor,0.1)
             U = torch.zeros_like(U_perturbation)
             t1 = float(config['initial_condition']['t1'])
             U[:, 0] = U_perturbation[:, 0] * torch.tanh(2.5 * t / t1) ** 2 + u0x * torch.exp(-0.5 * (1.5 * t / t1) ** 2)
@@ -359,7 +359,8 @@ for source in source_list:
             plt.ylabel("y")
             plt.title("time = {}".format(time_list[i]))
             plt.colorbar(im_ux)
-            plt.savefig("../images/{}/x/time={}.png".format(tag,i))
+
+            #plt.savefig("../images/{}/x/time={}.png".format(tag,i))
 
             plt.figure(figsize=(10, 6))
             im_uy = plt.imshow(res_uy[i, :, :],vmin=-s_uy,vmax=s_uy)
@@ -367,7 +368,8 @@ for source in source_list:
             plt.ylabel("y")
             plt.title("time = {}".format(time_list[i]))
             plt.colorbar(im_uy)
-            plt.savefig("../images/{}/y/time={}.png".format(tag,i))
+            plt.show()
+            #plt.savefig("../images/{}/y/time={}.png".format(tag,i))
 
             plt.figure(figsize=(10, 6))
             im_uy = plt.imshow(res_u[i, :, :],vmin=-s_u,vmax=s_u)
@@ -375,7 +377,7 @@ for source in source_list:
             plt.ylabel("y")
             plt.title("time = {}".format(time_list[i]))
             plt.colorbar(im_uy)
-            plt.savefig("../images/{}/u/time={}.png".format(tag,i))
+            #plt.savefig("../images/{}/u/time={}.png".format(tag,i))
 
 
 
@@ -403,17 +405,17 @@ for source in source_list:
     dir_path = os.path.join(os.getcwd(), dir)
 
     # Check if the directory already exists
-    if os.path.exists(dir_path):
+    #if os.path.exists(dir_path):
         # Remove the existing directory and all its subdirectories
-        shutil.rmtree(dir_path)
+        #shutil.rmtree(dir_path)
 
     # Create the directory
-    os.mkdir(dir_path)
+    #os.mkdir(dir_path)
 
     # Create the subdirectories
-    subdirs = ['x', 'y', 'u']
-    for subdir in subdirs:
-        os.mkdir(os.path.join(dir_path, subdir))
+    #subdirs = ['x', 'y', 'u']
+    #for subdir in subdirs:
+        #os.mkdir(os.path.join(dir_path, subdir))
 
     print(f"Directory '{tag}' created with subdirectories 'x', 'y', and 'u'.")
 

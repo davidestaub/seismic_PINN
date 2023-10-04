@@ -45,16 +45,9 @@ if len( sys.argv ) > 1:
     elif model_index == 4:
         model_type = "Global_NSources_Conditioned_Lame_Pinns"
     elif model_index == 5:
-        if config['Network']['reduced_computation']=='True':
-            model_type = "Global_FullDomain_Conditioned_Pinns_reduced_computation"
-        else:
-            model_type = "Global_FullDomain_Conditioned_Pinns"
+        model_type = "Global_FullDomain_Conditioned_Pinns"
     elif model_index == 6:
-            model_type = "Global_FullDomain_Conditioned_Pinns_Scramble_Resample"
-    elif model_index == 7:
-        model_type = "Wavelet_Pinns"
-    elif model_index == 8:
-        model_type = "PlaneWave_Pinns"
+        model_type = "Global_FullDomain_Conditioned_Pinns_Scramble_Resample"
     else:
         raise Exception("Unsupported model index {} please use a number between 0 and 6 : \n 0 -- PINNs \n 1 -- Global_NSources_Conditioned_Pinns \n 2 -- Relative_Distance_NSources_Conditioned_Pinns \n 3 -- Relative_Distance_FullDomain_Conditioned_Pinns \n 4 -- Global_NSources_Conditioned_Lame_Pinns \n 5 -- Global_FullDomain_Conditioned_Pinns \n -- Global_FullDomain_Conditioned_Pinns_Scramble_Resample ".format(model_index))
 else:
@@ -129,25 +122,14 @@ if len( sys.argv ) > 1:
         config_for_run.set('Network', 'model_type', 'Global_NSources_Conditioned_Lame_Pinns')
 
     elif model_index == 5:
+        pinn = PINNs.Global_FullDomain_Conditioned_Pinns(int(config['Network']['n_points']), wandb_on=True,config=config)
         print("model type selected as Global_FullDomain_Conditioned_Pinns")
-        if config['Network']['reduced_computation']=='True':
-            pinn = PINNs.Global_FullDomain_Conditioned_Pinns_reduced_computation(int(config['Network']['n_points']), wandb_on=True,config=config)
-            config_for_run.set('Network', 'model_type', 'Global_FullDomain_Conditioned_Pinns_reduced_computation')
-        else:
-            pinn = PINNs.Global_FullDomain_Conditioned_Pinns(int(config['Network']['n_points']), wandb_on=True,config=config)
-            config_for_run.set('Network', 'model_type', 'Global_FullDomain_Conditioned_Pinns')
+        config_for_run.set('Network', 'model_type', 'Global_FullDomain_Conditioned_Pinns')
+
     elif model_index == 6:
         pinn = PINNs.Global_FullDomain_Conditioned_Pinns_Scramble_Resample(int(config['Network']['n_points']), wandb_on=True,config=config)
         print("model type selected as Global_FullDomain_Conditioned_Pinns_Scramble_Resample")
         config_for_run.set('Network', 'model_type', 'Global_FullDomain_Conditioned_Pinns_Scramble_Resample')
-    elif model_index == 7:
-        pinn = PINNs.Wavelet_Pinns(int(config['Network']['n_points']),wandb_on=True,config=config)
-        print("model type selected as Wavelet PINN")
-        config_for_run.set('Network', 'model_type', 'Wavelet_Pinns')
-    elif model_index == 8:
-        pinn = PINNs.PlaneWave_Pinns(int(config['Network']['n_points']),wandb_on=True,config=config)
-        print("model type selected as PlaneWave PINN")
-        config_for_run.set('Network', 'model_type', 'PlaneWave_Pinns')
     else:
         raise Exception("Unsupported model index {} please use a number between 0 and 6 : \n 0 -- PINNs \n 1 -- Global_NSources_Conditioned_Pinns \n 2 -- Relative_Distance_NSources_Conditioned_Pinns \n 3 -- Relative_Distance_FullDomain_Conditioned_Pinns \n 4 -- Global_NSources_Conditioned_Lame_Pinns \n 5 -- Global_FullDomain_Conditioned_Pinns \n -- Global_FullDomain_Conditioned_Pinns_Scramble_Resample ".format(model_index))
 
@@ -166,10 +148,6 @@ else:
         pinn = PINNs.Global_NSources_Conditioned_Lame_Pinns(int(config['Network']['n_points']), wandb_on=True,config=config)
     elif model_type == "Global_FullDomain_Conditioned_Pinns":
         pinn = PINNs.Global_FullDomain_Conditioned_Pinns(int(config['Network']['n_points']), wandb_on=True,config=config)
-    elif model_type == "Wavelet_Pinns":
-        pinn = PINNs.Wavelet_Pinns(int(config['Network']['n_points']),wandb_on=True,config=config)
-    elif model_type =="PlaneWave_Pinns":
-        pinn = PINNs.PlaneWave_Pinns(int(config['Network']['n_points']),wandb_on=True,config=config)
     else:
         raise Exception("Model type {} not supported".format(model_type))
 
@@ -179,7 +157,7 @@ with open(dir_path+"/config.ini", 'w') as configfile2:
     config_for_run.write(configfile2)
 print({section: dict(config[section]) for section in config.sections()})
 n_epochs = int(config['optimizer']['n_epochs'])
-#optimizer_ADAM = optim.Adam(pinn.approximate_solution.parameters(),lr=1e-4)
+#optimizer_ADAM = optim.Adam(pinn.approximate_solution.parameters(),lr=1e-3)
 optimizer_LBFGS = optim.LBFGS(pinn.approximate_solution.parameters(),
                                 lr=float(float(config['optimizer']['lr'])),
                                 max_iter=int(config['optimizer']['max_iter']),
@@ -189,12 +167,48 @@ optimizer_LBFGS = optim.LBFGS(pinn.approximate_solution.parameters(),
                                 tolerance_grad=1e-8,
                                 tolerance_change=1.0 * np.finfo(float).eps)
 
-#pinn.approximate_solution.load_state_dict(torch.load('FLIPY_NEW_PINN_LBFGS_no_init_120000_70_1.0_200_200_800_3_64_tanh_0.07.pth', map_location=torch.device('cpu')))
+
+#pinn.approximate_solution.load_state_dict(torch.load(pth, map_location=torch.device('cpu')))
+
+# Load the state_dict from the pre-trained model
+pth = "FLIPY_NEW_PINN_conditioned_300000_100_1.0_200_200_800_6_64_tanh_0.07.pth"
+pretrained_state_dict = torch.load(pth, map_location=torch.device('cpu'))
+
+# Get the state_dict of the new model
+new_model_state_dict = pinn.approximate_solution.state_dict()
+
+# List the keys of state_dicts which you want to copy
+copy_keys = [
+    'input_layer.weight', 'input_layer.bias',
+    'hidden_layers.0.weight', 'hidden_layers.0.bias',
+    'hidden_layers.1.weight', 'hidden_layers.1.bias'
+]
+
+# Replace the weights and biases of the new model with the pre-trained model for the specified layers
+for key in copy_keys:
+    new_model_state_dict[key] = pretrained_state_dict[key]
+
+# Update the new model's state_dict
+pinn.approximate_solution.load_state_dict(new_model_state_dict)
+
+for param in pinn.approximate_solution.parameters():
+    param.requires_grad = False
+
+for i in range(2, len(pinn.approximate_solution.hidden_layers)):
+    for param in pinn.approximate_solution.hidden_layers[i].parameters():
+        param.requires_grad = True
+
+#with torch.no_grad():
+    #pinn.approximate_solution.hidden_layers[0].weight.copy_(state_dict['fc1.weight'])
+    #model.fc1.bias.copy_(state_dict['fc1.bias'])
+
+#pinn.hidden_layers = nn.ModuleList([nn.Linear(self.neurons, self.neurons) for _ in range(n_hidden_layers - 1)])
 
 #helper_network = PINNs.Pinns(int(config['Network']['n_points']), wandb_on=True,config=config)
 #helper_network.approximate_solution.load_state_dict(torch.load('FLIPY_NEW_PINN_LBFGS_no_init_120000_70_1.0_200_200_800_3_64_tanh_0.07.pth', map_location=torch.device('cpu')))
-#hist = pinn.fit(n_epochs,optimizer_LBFGS,optimizer_ADAM,verbose=True)
-hist = pinn.fit(n_epochs,optimizer_LBFGS,verbose=True)
+hist = pinn.fit(num_epochs=n_epochs,
+                optimizer=optimizer_LBFGS,
+                verbose=True)
 
 
 

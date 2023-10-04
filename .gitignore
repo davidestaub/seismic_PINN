@@ -4,3 +4,5 @@ pre_trained_models
 videos
 *.mp4
 src/pre_computed_test_devito
+*.png
+*.pdf

@@ -17,6 +17,7 @@ import torch
 import FD_devito
 from devito import *
 import pickle
+from Marmousi import plot_marmousi
 
 
 def compute_test_loss(parameter_model,domain_extrema,lambda_solid_c,mu_solid_c, rho_solid, mu_quake,sigma_quake):
@@ -46,6 +47,7 @@ def compute_test_loss(parameter_model,domain_extrema,lambda_solid_c,mu_solid_c, 
     spacing = (extent[0] / shape[0], extent[0] / shape[0])
     X, Y = np.meshgrid(np.linspace(0, numpoints_sqrt * spacing[0], numpoints_sqrt),
                        np.linspace(0, numpoints_sqrt * spacing[1], numpoints_sqrt))
+    print(numpoints_sqrt * spacing[0])
 
     if parameter_model == "mixture":
         # Generate mixtures for mu and lambda
@@ -60,6 +62,29 @@ def compute_test_loss(parameter_model,domain_extrema,lambda_solid_c,mu_solid_c, 
         lambda_solid,mu_solid = mixture_model.compute_lambda_mu_layers(torch.tensor(X),torch.tensor(Y),5)
         lambda_solid = lambda_solid.numpy()
         mu_solid = mu_solid.numpy()
+    elif parameter_model == 'marmousi':
+        vp = plot_marmousi.load_segy('Marmousi/vp_marmousi-ii.segy')  # P-wave velocity
+        vs = plot_marmousi.load_segy('Marmousi/vs_marmousi-ii.segy')  # S-wave velocity
+        density = plot_marmousi.load_segy('Marmousi/density_marmousi-ii.segy')  # Density
+
+        # Calculate Lame parameters
+        mu = density * vs ** 2  # Shear modulus or the second Lame parameter
+        lambda_ = density * vp ** 2 - 2 * mu  # First Lame parameter
+
+        # Plot results
+        plot_marmousi.plot_data(mu, 'Second Lame Parameter (μ) - Shear Modulus')
+        plot_marmousi.plot_data(lambda_, 'First Lame Parameter (λ)')
+
+        # Example usage (you should replace these with actual values)
+        #X, Y = np.meshgrid(np.linspace(-1, 1, 256), np.linspace(-1, 1, 256))
+
+        mu_solid, lambda_solid = plot_marmousi.get_params_at_coordinates(X, Y, mu, lambda_)
+
+        #print("Mu Values at given Coordinates: ", mu_vals)
+        #print("Lambda Values at given Coordinates: ", lambda_vals)
+        #plot_marmousi.plot_data(mu_vals.T, 'Second Lame Parameter (μ) - Shear Modulus normalized')
+        #plot_marmousi.plot_data(lambda_vals.T, 'First Lame Parameter (λ) normalized')
+
     else:
         raise Exception("model type {} not implemented".format(parameter_model))
 
@@ -219,4 +244,4 @@ def compute_test_loss(parameter_model,domain_extrema,lambda_solid_c,mu_solid_c, 
         res_list_devito_u = pickle.load(f)
 
 domain_extrema = [[0.0, 1.0],[-1.0, 1.0], [-1.0, 1.0]]
-compute_test_loss('layered',domain_extrema,20.0,30.0,100.0,[-0.132,0.114],0.1)
+compute_test_loss('marmousi',domain_extrema,20.0,30.0,100.0,[-0.132,0.114],0.01)

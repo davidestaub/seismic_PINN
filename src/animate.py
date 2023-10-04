@@ -2,7 +2,7 @@ import os
 import moviepy.video.io.ImageSequenceClip
 #image_folder='../images/NEWexplosion_u'
 image_folders = [
-"../images/2compare_mixtureFLIPY_NEW_PINN_mixture_single_source_120000_100_1.0_200_200_800_6_128_tanh_0.07"
+"../images/Global_FullDomain_Conditioned_Pinns_CURRICULUM_2_350002_301_1.0_300_300_100_6_128_tanh_0.07"
 ]
 
 for top_folder in image_folders:
@@ -33,4 +33,4 @@ for top_folder in image_folders:
             print(image_files)
             print(sorted_image_files)
             clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(sorted_image_files, fps=fps)
-            clip.write_videofile('{}_{}.mp4'.format(top_folder.replace("../images/",""),tag))
+            clip.write_videofile('lower{}_{}.mp4'.format(top_folder.replace("../images/",""),tag))
